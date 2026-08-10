@@ -47,7 +47,7 @@
     "codemirror": "^6.0.1",
     "framer-motion": "^11.18.1",
     "immer": "^10.1.1",
-    "inngest": "^4.18.0",
+    "inngest": "3.30.0",
     "lucide-react": "^0.441.0",
     "next": "14.2.11",
     "next-mdx-remote": "^5.0.0",
