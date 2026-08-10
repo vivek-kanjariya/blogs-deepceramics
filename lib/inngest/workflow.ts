@@ -1,5 +1,4 @@
 import { Engine } from "@inngest/workflow-kit";
-
 import { loadWorkflow } from "../loaders/workflow";
 import { inngest } from "./client";
 import { actionsWithHandlers } from "./workflowActionHandlers";
@@ -15,21 +14,26 @@ const workflowEngine = new Engine({
 export default inngest.createFunction(
   { 
     id: "blog-post-workflow",
-    cancelOn: [{
-      event: "blog-post.reject-ai-suggestions",
-      if: "async.data.id == event.data.id",
-      timeout: "1d"
-    }],
+    name: "Blog Post Automation",
+    // ✅ Triggers go INSIDE the first argument object
+    triggers: [
+      { event: "blog-post.updated" },
+      { event: "blog-post.published" }
+    ],
+    // Cancel on - if you want to keep this, it also goes here
+    cancelOn: [
+      {
+        event: "blog-post.reject-ai-suggestions",
+        if: "async.data.id == event.data.id",
+        timeout: "1d"
+      }
+    ]
   },
-  // Triggers
-  // - When a blog post is set to "review"
-  // - When a blog post is published (for post-publish actions)
-  [
-    { event: "blog-post.updated" },
-    { event: "blog-post.published" }
-  ],
+  // ✅ Handler is now the SECOND argument
   async ({ event, step }) => {
     try {
+      console.log("Workflow triggered by event:", event.name);
+      
       const workflow = await loadWorkflow(event);
       
       if (!workflow) {
@@ -41,7 +45,10 @@ export default inngest.createFunction(
         console.log("Workflow has no actions");
         return;
       }
+      
+      console.log("Running workflow with actions:", workflow.actions);
       await workflowEngine.run({ event, step, workflow });
+      
     } catch (error: unknown) {
       console.error("Error running workflow:", error instanceof Error ? error.message : String(error));
       throw error;
